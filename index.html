@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Coach</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;--s1:#161a22;--s2:#1e2330;--bd:#2a3040;
+  --ac:#4fd1a5;--or:#f97316;--bl:#60a5fa;--re:#f87171;--pu:#a78bfa;
+  --t1:#e8edf5;--t2:#8892a4;--t3:#555f72
+}
+body{font-family:-apple-system,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh}
+.app{max-width:480px;margin:0 auto;padding:20px 14px 80px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.hdr h1{font-size:20px;font-weight:700;letter-spacing:-.5px}
+.hdr h1 span{color:var(--ac)}
+.hdr-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.hdr-date{font-size:11px;color:var(--t3);text-align:right;line-height:1.6}
+.tabs{display:flex;gap:4px;background:var(--s1);border-radius:12px;padding:4px;margin-bottom:18px;border:1px solid var(--bd);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;flex:1;padding:8px 4px;border:none;border-radius:9px;background:transparent;color:var(--t2);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:inherit}
+.tab.on{background:var(--s2);color:var(--t1);box-shadow:0 1px 6px rgba(0,0,0,.4)}
+.pnl{display:none}.pnl.on{display:block}
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px}
+.clb{font-size:10px;font-weight:600;letter-spacing:1px;color:var(--t3);text-transform:uppercase;margin-bottom:12px}
+.ig{display:flex;gap:7px;margin-bottom:10px}
+.ib{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 6px;text-align:center;transition:border-color .2s}
+.ib:focus-within{border-color:var(--ac)}
+.ib input{background:transparent;border:none;color:var(--t1);font-size:22px;font-weight:700;width:100%;outline:none;text-align:center;font-family:inherit}
+.ib input[type=time]{font-size:16px}
+.ib input::placeholder{color:var(--t3);font-size:15px;font-weight:400}
+.ib .u{font-size:9px;color:var(--t3);margin-top:2px;letter-spacing:.3px}
+.ib.w2{flex:2}
+.ta{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:10px;color:var(--t1);font-size:13px;padding:10px 12px;resize:none;outline:none;min-height:56px;line-height:1.5;transition:border-color .2s;font-family:inherit}
+.ta:focus{border-color:var(--ac)}
+.ta::placeholder{color:var(--t3)}
+.up-zone{border:2px dashed var(--bd);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:8px}
+.up-zone:hover{border-color:var(--ac);background:rgba(79,209,165,.04)}
+.up-zone input{display:none}
+.up-ico{font-size:22px;margin-bottom:4px}
+.up-txt{font-size:12px;color:var(--t2);line-height:1.5}
+.up-txt b{color:var(--ac)}
+.up-prev{width:100%;border-radius:8px;margin-top:8px;max-height:160px;object-fit:cover;display:none}
+.btn{width:100%;padding:13px;background:var(--ac);color:#051510;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;transition:filter .2s;font-family:inherit}
+.btn:hover:not(:disabled){filter:brightness(1.08)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.sp{width:18px;height:18px;border:2px solid rgba(5,21,16,.3);border-top-color:#051510;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai{background:rgba(79,209,165,.06);border:1px solid rgba(79,209,165,.2);border-radius:12px;padding:16px;margin-top:12px;display:none}
+.ai.on{display:block}
+.ai-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(79,209,165,.12)}
+.ai-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--bl));display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.ai-nm{font-size:11px;font-weight:600;color:var(--ac)}
+.ai-body{font-size:13px;color:var(--t2);line-height:1.75}
+.ai-body b{color:var(--t1);font-weight:600}
+.mline{font-size:12px;text-align:center;min-height:16px;margin-top:6px}
+.key-card{padding:12px 14px;border-radius:12px;margin-bottom:12px;border:1px solid rgba(249,115,22,.35);background:rgba(249,115,22,.05);transition:all .3s}
+.key-card.ok{border-color:rgba(79,209,165,.25);background:rgba(79,209,165,.04)}
+.key-row{display:flex;gap:7px;margin-top:8px}
+.key-row input{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:9px 11px;color:var(--t1);font-size:13px;outline:none;font-family:inherit}
+.kbtn{padding:9px 14px;background:var(--or);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.chk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.chk{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:10px 4px;text-align:center;transition:all .2s}
+.chk.ok{border-color:rgba(79,209,165,.4);background:rgba(79,209,165,.07)}
+.chk-i{font-size:18px;margin-bottom:3px}
+.chk-n{font-size:9px;color:var(--t3);margin-bottom:3px}
+.chk-s{display:inline-block;font-size:9px;font-weight:600;padding:1px 5px;border-radius:6px;background:rgba(85,95,114,.3);color:var(--t3)}
+.chk.ok .chk-s{background:rgba(79,209,165,.2);color:var(--ac)}
+.c-row{display:flex;gap:5px}
+.c-btn{flex:1;padding:7px 4px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;cursor:pointer;text-align:center;font-size:12px;color:var(--t2);transition:all .2s;font-family:inherit}
+.c-btn.on{border-color:var(--ac);background:rgba(79,209,165,.1);color:var(--ac)}
+.twin{display:flex;gap:8px;margin-bottom:12px}
+.twin .card{flex:1;margin-bottom:0;text-align:center}
+.goal-row{display:flex;align-items:flex-end;gap:8px;margin-bottom:8px}
+.bar-bg{background:var(--s2);border-radius:20px;height:7px;overflow:hidden;margin:6px 0}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--bl));border-radius:20px;transition:width .6s}
+.h-item{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:13px 15px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.h-item:hover{border-color:#3a4255}
+.h-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.h-dt{font-size:11px;color:var(--t3)}
+.badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px}
+.bg-m{background:rgba(249,115,22,.15);color:var(--or)}
+.bg-i{background:rgba(79,209,165,.15);color:var(--ac)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:2px 8px;font-size:11px;color:var(--t2)}
+.chip b{color:var(--t1)}
+.h-ai{font-size:11px;color:var(--t3);margin-top:5px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.empty{text-align:center;padding:36px 16px;color:var(--t3)}
+.empty-i{font-size:32px;margin-bottom:8px}
+.flt{display:flex;gap:5px;margin-bottom:12px}
+.flt-btn{padding:5px 10px;font-size:11px;font-weight:600;border-radius:7px;border:1px solid var(--bd);background:transparent;color:var(--t2);cursor:pointer;font-family:inherit;transition:all .2s}
+.flt-btn.on{border-color:var(--ac);color:var(--ac);background:rgba(79,209,165,.08)}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.sc{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:11px 6px;text-align:center}
+.sc-n{font-size:20px;font-weight:700}
+.sc-l{font-size:9px;color:var(--t3);margin-top:2px}
+canvas{width:100%!important}
+.tp{display:flex;gap:5px}
+.tp-btn{padding:3px 9px;font-size:11px;font-weight:600;border-radius:6px;border:1px solid var(--bd);background:transparent;color:var(--t3);cursor:pointer;font-family:inherit;transition:all .2s}
+.tp-btn.on{border-color:var(--ac);color:var(--ac);background:rgba(79,209,165,.08)}
+.bk-row{display:flex;gap:8px}
+.bk-btn{flex:1;padding:11px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);transition:all .2s;font-family:inherit}
+.bk-btn:hover{color:var(--t1);border-color:#3a4255}
+.bk-danger{border-color:rgba(248,113,113,.3)!important;color:var(--re)!important;background:rgba(248,113,113,.06)!important;width:100%;padding:11px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:50;align-items:flex-end;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:var(--s1);border:1px solid var(--bd);border-radius:18px 18px 0 0;padding:18px 16px 36px;width:100%;max-width:480px;max-height:82vh;overflow-y:auto;animation:mup .25s ease}
+@keyframes mup{from{transform:translateY(24px);opacity:0}}
+.m-handle{width:34px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 14px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <div>
+    <h1>Health <span>Coach</span></h1>
+    <div class="hdr-sub">준킴쌤 전용 건강 기록소</div>
+  </div>
+  <div class="hdr-date" id="hdrDate"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" onclick="goTab('home',this)">🏠 홈</button>
+  <button class="tab" onclick="goTab('inbody',this)">⚖️ 인바디</button>
+  <button class="tab" onclick="goTab('history',this)">📊 기록함</button>
+  <button class="tab" onclick="goTab('analysis',this)">🧠 분석</button>
+  <button class="tab" onclick="goTab('settings',this)">⚙️ 설정</button>
+</div>
+
+<!-- HOME -->
+<div class="pnl on" id="pnl-home">
+
+  <div class="key-card" id="keyCard">
+    <div style="font-size:12px;font-weight:600" id="keyTitle">🔑 AI 분석을 위해 API 키를 입력해주세요</div>
+    <div id="keyFormWrap">
+      <div style="font-size:11px;color:var(--t2);margin-top:4px">console.anthropic.com → API keys에서 발급</div>
+      <div class="key-row">
+        <input type="password" id="keyInput" placeholder="sk-ant-api03-...">
+        <button class="kbtn" onclick="saveKey()">저장</button>
+      </div>
+      <div id="keyMsg" style="font-size:11px;margin-top:4px;color:var(--t3)"></div>
+    </div>
+    <div id="keyOkWrap" style="display:none;font-size:12px;color:var(--ac)">
+      🔑 AI 분석 활성화됨 &nbsp;<span style="color:var(--t3);font-size:11px;cursor:pointer;text-decoration:underline" onclick="resetKey()">키 변경</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="clb">🌅 아침 루틴 기록</div>
+
+    <div style="font-size:11px;color:var(--t3);margin-bottom:5px">⚖️ 체중</div>
+    <div class="ig" style="margin-bottom:14px">
+      <div class="ib w2"><input type="number" id="mW" step="0.1" placeholder="83.5"><div class="u">kg</div></div>
+    </div>
+
+    <div style="font-size:11px;color:var(--t3);margin-bottom:5px">🩺 혈압</div>
+    <div class="ig" style="margin-bottom:14px">
+      <div class="ib"><input type="number" id="mSys" step="1" placeholder="124"><div class="u">수축기</div></div>
+      <div class="ib"><input type="number" id="mDia" step="1" placeholder="71"><div class="u">이완기</div></div>
+      <div class="ib"><input type="number" id="mPls" step="1" placeholder="58"><div class="u">맥박</div></div>
+    </div>
+
+    <div style="font-size:11px;color:var(--t3);margin-bottom:5px">🌙 수면 (어젯밤)</div>
+    <div class="ig" style="margin-bottom:8px">
+      <div class="ib"><input type="time" id="mBed" value="23:30"><div class="u">취침</div></div>
+      <div class="ib"><input type="time" id="mWake" value="05:00"><div class="u">기상</div></div>
+      <div class="ib" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div id="sleepTotal" style="font-size:17px;font-weight:700;color:var(--ac)">5h30m</div>
+        <div class="u">총 수면</div>
+      </div>
+    </div>
+    <div class="c-row" style="margin-bottom:14px">
+      <button class="c-btn on" id="cb-개운" onclick="selCond('개운',this)">✨ 개운</button>
+      <button class="c-btn" id="cb-보통" onclick="selCond('보통',this)">😐 보통</button>
+      <button class="c-btn" id="cb-찌뿌둥" onclick="selCond('찌뿌둥',this)">😩 찌뿌둥</button>
+    </div>
+
+    <div style="font-size:11px;color:var(--t3);margin-bottom:5px">💪 운동 캡쳐 (선택)</div>
+    <div class="up-zone" id="exZone" onclick="document.getElementById('exFile').click()">
+      <input type="file" id="exFile" accept="image/*" onchange="onExImg(this)">
+      <div class="up-ico" id="exIco">📸</div>
+      <div class="up-txt" id="exTxt">운동 기록 <b>캡쳐 업로드</b><br><span style="font-size:11px;color:var(--t3)">운동 없는 날은 건너뛰세요</span></div>
+      <img id="exPrev" class="up-prev">
+    </div>
+    <textarea class="ta" id="exNote" placeholder="운동 메모 (선택)"></textarea>
+
+    <button class="btn" id="mBtn" onclick="saveMorning()">✅ 저장 & AI 분석</button>
+    <div class="mline" id="mMsg"></div>
+
+    <div class="ai" id="mAi">
+      <div class="ai-hd">
+        <div class="ai-av">🌅</div>
+        <div><div class="ai-nm">아침 루틴 분석</div><div style="font-size:10px;color:var(--t3)">체중·혈압·수면 종합</div></div>
+      </div>
+      <div class="ai-body" id="mAiBody"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="clb" style="margin-bottom:0">오늘 측정 현황</div>
+      <div style="font-size:11px;color:var(--t3)" id="todayLbl"></div>
+    </div>
+    <div class="chk-grid">
+      <div class="chk" id="chk-w"><div class="chk-i">⚖️</div><div class="chk-n">체중</div><div class="chk-s" id="cs-w">미측정</div></div>
+      <div class="chk" id="chk-b"><div class="chk-i">🩺</div><div class="chk-n">혈압</div><div class="chk-s" id="cs-b">미측정</div></div>
+      <div class="chk" id="chk-s"><div class="chk-i">🌙</div><div class="chk-n">수면</div><div class="chk-s" id="cs-s">미기록</div></div>
+      <div class="chk" id="chk-e"><div class="chk-i">💪</div><div class="chk-n">운동</div><div class="chk-s" id="cs-e">미기록</div></div>
+    </div>
+  </div>
+
+  <div class="twin">
+    <div class="card">
+      <div style="font-size:10px;color:var(--t3);margin-bottom:4px">7일 평균 체중</div>
+      <div style="font-size:20px;font-weight:700;color:var(--bl)" id="avg7">— kg</div>
+      <div style="font-size:10px;color:var(--t3);margin-top:2px" id="avg7d"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:10px;color:var(--t3);margin-bottom:4px">최근 혈압</div>
+      <div style="font-size:20px;font-weight:700;color:var(--or)" id="lastBP">—/—</div>
+      <div style="font-size:10px;color:var(--t3);margin-top:2px" id="lastBPd"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="clb" style="margin-bottom:0">📈 체중 트렌드</div>
+      <div class="tp">
+        <button class="tp-btn on" onclick="setDays(7,this)">7일</button>
+        <button class="tp-btn" onclick="setDays(30,this)">30일</button>
+      </div>
+    </div>
+    <canvas id="wChart" height="110"></canvas>
+    <div id="wEmpty" style="text-align:center;padding:24px;font-size:12px;color:var(--t3)">기록이 쌓이면 그래프가 표시돼요</div>
+  </div>
+
+  <div class="card">
+    <div class="clb" style="margin-bottom:12px">🩺 혈압 트렌드</div>
+    <canvas id="bChart" height="90"></canvas>
+    <div id="bEmpty" style="text-align:center;padding:24px;font-size:12px;color:var(--t3)">기록이 쌓이면 그래프가 표시돼요</div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="clb" style="margin-bottom:0">🎯 목표 체중</div>
+      <button onclick="toggleGoal()" style="font-size:11px;color:var(--ac);background:none;border:none;cursor:pointer;font-family:inherit">수정</button>
+    </div>
+    <div id="goalShow">
+      <div class="goal-row">
+        <div><div style="font-size:10px;color:var(--t3)">현재</div><div style="font-size:30px;font-weight:700" id="gCur">—</div><div style="font-size:11px;color:var(--t3)">kg</div></div>
+        <div style="font-size:16px;color:var(--t3);margin-bottom:8px;padding:0 4px">→</div>
+        <div><div style="font-size:10px;color:var(--t3)">목표</div><div style="font-size:24px;font-weight:700;color:var(--ac)" id="gTgt">—</div><div style="font-size:11px;color:var(--t3)">kg</div></div>
+        <div style="flex:1"></div>
+        <div style="text-align:right"><div style="font-size:22px;font-weight:700;color:var(--ac)" id="gPct">—</div><div style="font-size:10px;color:var(--t3)">달성률</div></div>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" id="gBar" style="width:0%"></div></div>
+      <div style="font-size:11px;color:var(--t3)" id="gDiff"></div>
+    </div>
+    <div id="goalEdit" style="display:none;margin-top:10px">
+      <div class="ig">
+        <div class="ib"><input type="number" id="gW" step="0.5" placeholder="76.0"><div class="u">목표 체중 kg</div></div>
+        <div class="ib"><input type="number" id="gF" step="0.5" placeholder="18.0"><div class="u">목표 체지방%</div></div>
+      </div>
+      <button class="btn" onclick="saveGoal()">저장</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- INBODY -->
+<div class="pnl" id="pnl-inbody">
+  <div class="card">
+    <div class="clb">⚖️ 인바디 캡쳐 (주 1회)</div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:12px;line-height:1.5">인바디 체중계 화면을 캡쳐해서 업로드하세요.<br>AI가 수치를 읽고 분석 + 이전 기록과 비교해드립니다.</div>
+    <div class="up-zone" id="ibZone" onclick="document.getElementById('ibFile').click()">
+      <input type="file" id="ibFile" accept="image/*" onchange="onIbImg(this)">
+      <div class="up-ico" id="ibIco">📸</div>
+      <div class="up-txt" id="ibTxt">인바디 화면 <b>캡쳐 업로드</b><br><span style="font-size:11px;color:var(--t3)">탭하여 선택</span></div>
+      <img id="ibPrev" class="up-prev">
+    </div>
+    <textarea class="ta" id="ibNote" placeholder="메모 (선택): 오늘 컨디션, 특이사항" style="margin-top:8px"></textarea>
+    <button class="btn" id="ibBtn" onclick="saveInbody()">🧠 인바디 AI 분석 & 저장</button>
+    <div class="mline" id="ibMsg"></div>
+    <div class="ai" id="ibAi">
+      <div class="ai-hd">
+        <div class="ai-av">⚖️</div>
+        <div><div class="ai-nm">인바디 분석</div><div style="font-size:10px;color:var(--t3)">체성분 종합 평가</div></div>
+      </div>
+      <div class="ai-body" id="ibAiBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="pnl" id="pnl-history">
+  <div class="stats3">
+    <div class="sc"><div class="sc-n" id="stTotal">0</div><div class="sc-l">총 기록</div></div>
+    <div class="sc"><div class="sc-n" id="stStreak">0</div><div class="sc-l">연속일</div></div>
+    <div class="sc"><div class="sc-n" id="stMonth">0</div><div class="sc-l">이번달</div></div>
+  </div>
+  <div class="flt">
+    <button class="flt-btn on" onclick="setFilter('all',this)">전체</button>
+    <button class="flt-btn" onclick="setFilter('morning',this)">아침루틴</button>
+    <button class="flt-btn" onclick="setFilter('inbody',this)">인바디</button>
+  </div>
+  <div id="histList"></div>
+</div>
+
+<!-- ANALYSIS -->
+<div class="pnl" id="pnl-analysis">
+  <div class="card">
+    <div class="clb">🧠 종합 건강 리포트</div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:12px;line-height:1.5">최근 모든 기록을 종합해서 트렌드와 개선 방향을 분석합니다.</div>
+    <button class="btn" id="anaBtn" onclick="runAnalysis()">📈 종합 리포트 생성</button>
+  </div>
+  <div class="ai" id="anaAi">
+    <div class="ai-hd">
+      <div class="ai-av">🧠</div>
+      <div><div class="ai-nm">종합 건강 리포트</div><div style="font-size:10px;color:var(--t3)" id="anaDate"></div></div>
+    </div>
+    <div class="ai-body" id="anaBody"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="pnl" id="pnl-settings">
+  <div class="card">
+    <div class="clb">💾 데이터 백업 & 복원</div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:12px;line-height:1.6">백업 파일을 저장해두면 기기를 바꾸거나 앱이 초기화돼도 기록을 복원할 수 있어요.</div>
+    <div class="bk-row">
+      <button class="bk-btn" onclick="doBackup()">⬇️ 백업 다운로드</button>
+      <button class="bk-btn" onclick="document.getElementById('restoreFile').click()">⬆️ 백업 복원</button>
+      <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="doRestore(this)">
+    </div>
+    <div style="font-size:11px;color:var(--t3);margin-top:8px;text-align:center" id="bkMsg"></div>
+  </div>
+
+  <div class="card">
+    <div class="clb">🎯 목표 설정</div>
+    <div class="ig">
+      <div class="ib"><input type="number" id="sGW" step="0.5" placeholder="76.0"><div class="u">목표 체중 kg</div></div>
+      <div class="ib"><input type="number" id="sGF" step="0.5" placeholder="18.0"><div class="u">목표 체지방%</div></div>
+    </div>
+    <button class="btn" onclick="saveGoalSettings()">저장</button>
+    <div class="mline" id="goalMsg"></div>
+  </div>
+
+  <div class="card">
+    <div class="clb">🗑️ 데이터 초기화</div>
+    <div style="font-size:12px;color:var(--t2);margin-bottom:10px">모든 기록을 삭제합니다. 먼저 백업을 해두세요.</div>
+    <button class="bk-danger" onclick="doClear()">⚠️ 전체 데이터 삭제</button>
+  </div>
+</div>
+
+</div>
+
+<div class="modal-bg" id="mBg" onclick="closeMod(event)">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<script>
+var DB='hc3_recs', GK='hc3_goal', AK='hc3_key';
+var recs=JSON.parse(localStorage.getItem(DB)||'[]');
+var goal=JSON.parse(localStorage.getItem(GK)||'{}');
+var cond='개운', exImg=null, ibImg=null, chartDays=7, hFilter='all';
+
+// INIT
+(function(){
+  var d=new Date(), days=['일','월','화','수','목','금','토'];
+  document.getElementById('hdrDate').innerHTML=
+    d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일<br>'+
+    '<span style="color:var(--ac)">'+days[d.getDay()]+'요일</span>';
+  document.getElementById('todayLbl').textContent=(d.getMonth()+1)+'/'+ d.getDate();
+  applyKeyUI(); calcSleep(); updateChecks(); updateStats2(); updateGoalUI(); updateAvg(); renderCharts();
+  document.getElementById('mBed').addEventListener('change', calcSleep);
+  document.getElementById('mWake').addEventListener('change', calcSleep);
+})();
+
+// API KEY
+function getKey(){return localStorage.getItem(AK)||'';}
+function saveKey(){
+  var v=document.getElementById('keyInput').value.trim();
+  if(v.length<10){document.getElementById('keyMsg').textContent='올바른 키를 입력해주세요';return;}
+  localStorage.setItem(AK,v);
+  document.getElementById('keyInput').value='';
+  applyKeyUI();
+}
+function resetKey(){localStorage.removeItem(AK);applyKeyUI();}
+function applyKeyUI(){
+  var has=!!getKey();
+  var card=document.getElementById('keyCard');
+  var title=document.getElementById('keyTitle');
+  document.getElementById('keyFormWrap').style.display=has?'none':'block';
+  document.getElementById('keyOkWrap').style.display=has?'block':'none';
+  if(has){card.className='key-card ok';title.style.color='var(--ac)';}
+  else{card.className='key-card';title.style.color='var(--or)';}
+}
+
+// AI XHR
+function callAI(prompt, img){
+  return new Promise(function(ok,fail){
+    var key=getKey();
+    if(!key){fail(new Error('API 키 없음. 홈에서 입력해주세요.'));return;}
+    var content=[];
+    if(img){
+      var b64=img.split(',')[1], mt=img.split(';')[0].split(':')[1];
+      content.push({type:'image',source:{type:'base64',media_type:mt,data:b64}});
+    }
+    content.push({type:'text',text:prompt});
+    var x=new XMLHttpRequest();
+    x.open('POST','https://api.anthropic.com/v1/messages');
+    x.setRequestHeader('content-type','application/json');
+    x.setRequestHeader('x-api-key',key);
+    x.setRequestHeader('anthropic-version','2023-06-01');
+    x.setRequestHeader('anthropic-dangerous-direct-browser-access','true');
+    x.onload=function(){
+      if(x.status>=400){
+        try{var e=JSON.parse(x.responseText);fail(new Error(e.error&&e.error.message?e.error.message:'HTTP '+x.status));}
+        catch(ex){fail(new Error('HTTP '+x.status));}
+        return;
+      }
+      try{var data=JSON.parse(x.responseText);ok(data.content.map(function(b){return b.text||'';}).join(''));}
+      catch(ex){fail(new Error('파싱 오류'));}
+    };
+    x.onerror=function(){fail(new Error('네트워크 오류'));};
+    x.send(JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,messages:[{role:'user',content:content}]}));
+  });
+}
+
+// TABS
+function goTab(id,btn){
+  document.querySelectorAll('.pnl').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  document.getElementById('pnl-'+id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='history')renderHistory();
+  if(id==='home'){updateChecks();updateAvg();renderCharts();}
+}
+
+// SLEEP
+function calcSleep(){
+  var bed=document.getElementById('mBed').value, wake=document.getElementById('mWake').value;
+  if(!bed||!wake)return;
+  var bm=toM(bed), wm=toM(wake), diff=wm-bm;
+  if(diff<=0)diff+=1440;
+  var h=Math.floor(diff/60), m=diff%60;
+  var el=document.getElementById('sleepTotal');
+  el.textContent=h+'h'+(m?m+'m':'');
+  el.style.color=h>=7?'var(--ac)':h>=6?'var(--or)':'var(--re)';
+}
+function toM(t){var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
+function selCond(v,btn){
+  cond=v;
+  ['개운','보통','찌뿌둥'].forEach(function(c){
+    var b=document.getElementById('cb-'+c);
+    if(b)b.className='c-btn'+(c===v?' on':'');
+  });
+}
+
+// IMAGE
+function onExImg(inp){
+  var f=inp.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    exImg=e.target.result;
+    document.getElementById('exPrev').src=e.target.result;
+    document.getElementById('exPrev').style.display='block';
+    document.getElementById('exIco').textContent='✅';
+    document.getElementById('exTxt').innerHTML='<b style="color:var(--ac)">업로드 완료</b>';
+  };
+  r.readAsDataURL(f);
+}
+function onIbImg(inp){
+  var f=inp.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    ibImg=e.target.result;
+    document.getElementById('ibPrev').src=e.target.result;
+    document.getElementById('ibPrev').style.display='block';
+    document.getElementById('ibIco').textContent='✅';
+    document.getElementById('ibTxt').innerHTML='<b style="color:var(--ac)">업로드 완료</b> — AI가 수치를 읽어드립니다';
+  };
+  r.readAsDataURL(f);
+}
+
+// SAVE MORNING
+function saveMorning(){
+  var w=parseFloat(document.getElementById('mW').value);
+  var sys=parseInt(document.getElementById('mSys').value);
+  var dia=parseInt(document.getElementById('mDia').value);
+  var pls=parseInt(document.getElementById('mPls').value);
+  var bed=document.getElementById('mBed').value;
+  var wake=document.getElementById('mWake').value;
+  var note=document.getElementById('exNote').value.trim();
+  var btn=document.getElementById('mBtn');
+  var msg=document.getElementById('mMsg');
+  var aiBox=document.getElementById('mAi');
+  var aiBody=document.getElementById('mAiBody');
+
+  if(!w&&!sys){
+    msg.style.color='var(--re)';
+    msg.textContent='체중 또는 혈압을 입력해주세요';
+    return;
+  }
+
+  var sleepMins=0,sleepStr='';
+  if(bed&&wake){
+    var bm=toM(bed),wm=toM(wake),diff=wm-bm;
+    if(diff<=0)diff+=1440;
+    sleepMins=diff;
+    var sh=Math.floor(diff/60),sm=diff%60;
+    sleepStr=sh+'시간'+(sm?' '+sm+'분':'');
+  }
+
+  var today=new Date().toISOString().split('T')[0];
+  var rec={
+    id:Date.now(),type:'morning',date:new Date().toISOString(),
+    weight:w||null,sys:sys||null,dia:dia||null,pulse:pls||null,
+    bedtime:bed,waketime:wake,sleepMins:sleepMins,sleepStr:sleepStr,sleepCond:cond,
+    exNote:note,hasExImg:!!exImg
+  };
+
+  recs=recs.filter(function(r){return!(r.type==='morning'&&r.date.startsWith(today));});
+  recs.push(rec);
+  saveDB();
+  updateChecks();updateAvg();updateGoalUI();renderCharts();
+
+  msg.style.color='var(--ac)';
+  msg.textContent='✅ 저장됐어요!';
+
+  // build prompt
+  var prevMs=recs.filter(function(r){return r.type==='morning'&&r.id!==rec.id;});
+  var pWs=prevMs.filter(function(r){return r.weight;}).slice(-7);
+  var avgW=pWs.length?(pWs.reduce(function(s,r){return s+r.weight;},0)/pWs.length).toFixed(1):null;
+  var pBs=prevMs.filter(function(r){return r.sys;}).slice(-5);
+  var aSys=pBs.length?Math.round(pBs.reduce(function(s,r){return s+r.sys;},0)/pBs.length):null;
+  var aDia=pBs.length?Math.round(pBs.reduce(function(s,r){return s+r.dia;},0)/pBs.length):null;
+
+  var lines=['당신은 건강 코치입니다. 오늘 아침 측정값을 분석하고 한국어로 코칭해주세요 (250자 이내).',''];
+  if(w)lines.push('체중: '+w+'kg'+(avgW?' (최근평균'+avgW+'kg, 변화'+(w-parseFloat(avgW)).toFixed(1)+'kg)':''));
+  if(sys&&dia)lines.push('혈압: '+sys+'/'+dia+' mmHg, 맥박 '+(pls||'?')+' bpm'+(aSys?' (최근평균'+aSys+'/'+aDia+')':''));
+  if(sleepStr)lines.push('수면: '+sleepStr+', 컨디션: '+cond);
+  if(note)lines.push('운동메모: '+note);
+  lines.push('','1) 오늘 수치 한줄 평  2) 이전 대비 변화  3) 오늘 팁 한 가지. 따뜻하게.');
+
+  btn.disabled=true;
+  btn.innerHTML='<div class="sp"></div> AI 분석 중...';
+  aiBox.classList.remove('on');
+
+  callAI(lines.join('\n'), exImg)
+    .then(function(text){
+      rec.aiAnalysis=text; saveDB();
+      aiBody.innerHTML=fmtAI(text);
+      aiBox.classList.add('on');
+      aiBox.scrollIntoView({behavior:'smooth',block:'nearest'});
+      msg.textContent='✅ 분석 완료!';
+    })
+    .catch(function(e){
+      aiBody.innerHTML='<span style="color:var(--re)">오류: '+e.message+'</span>';
+      aiBox.classList.add('on');
+      msg.style.color='var(--re)';
+      msg.textContent='저장됨 (AI오류: '+e.message+')';
+    })
+    .then(function(){
+      btn.disabled=false; btn.innerHTML='✅ 저장 & AI 분석';
+      document.getElementById('mW').value='';
+      document.getElementById('mSys').value='';
+      document.getElementById('mDia').value='';
+      document.getElementById('mPls').value='';
+      document.getElementById('exNote').value='';
+      exImg=null;
+      document.getElementById('exPrev').style.display='none';
+      document.getElementById('exIco').textContent='📸';
+      document.getElementById('exTxt').innerHTML='운동 기록 <b>캡쳐 업로드</b><br><span style="font-size:11px;color:var(--t3)">운동 없는 날은 건너뛰세요</span>';
+    });
+}
+
+// SAVE INBODY
+function saveInbody(){
+  if(!ibImg){document.getElementById('ibMsg').style.color='var(--re)';document.getElementById('ibMsg').textContent='캡쳐를 먼저 업로드해주세요';return;}
+  var note=document.getElementById('ibNote').value.trim();
+  var btn=document.getElementById('ibBtn'), msg=document.getElementById('ibMsg');
+  var aiBox=document.getElementById('ibAi'), aiBody=document.getElementById('ibAiBody');
+
+  var rec={id:Date.now(),type:'inbody',date:new Date().toISOString(),note:note};
+  recs.push(rec); saveDB();
+
+  btn.disabled=true; btn.innerHTML='<div class="sp"></div> 분석 중...';
+  msg.textContent=''; aiBox.classList.remove('on');
+
+  var prev=recs.filter(function(r){return r.type==='inbody'&&r.id!==rec.id;}).slice(-1)[0];
+  var prompt='이 인바디 측정 화면을 분석해주세요.'+
+    (prev&&prev.aiAnalysis?'\n이전 분석 요약: '+prev.aiAnalysis.substring(0,150):'')+ 
+    '\n\n한국어 400자 이내:\n1. 현재 체성분 상태 평가\n2. 이전과 비교 (있으면)\n3. 잘하고 있는 점\n4. 개선 포인트\n5. 이번주 미션\n따뜻하게.';
+
+  callAI(prompt, ibImg)
+    .then(function(text){
+      rec.aiAnalysis=text; saveDB();
+      aiBody.innerHTML=fmtAI(text);
+      aiBox.classList.add('on');
+      msg.style.color='var(--ac)'; msg.textContent='✅ 분석 완료!';
+    })
+    .catch(function(e){
+      aiBody.innerHTML='<span style="color:var(--re)">오류: '+e.message+'</span>';
+      aiBox.classList.add('on');
+      msg.style.color='var(--re)'; msg.textContent='오류: '+e.message;
+    })
+    .then(function(){
+      btn.disabled=false; btn.innerHTML='🧠 인바디 AI 분석 & 저장';
+      ibImg=null;
+      document.getElementById('ibPrev').style.display='none';
+      document.getElementById('ibIco').textContent='📸';
+      document.getElementById('ibTxt').innerHTML='인바디 화면 <b>캡쳐 업로드</b><br><span style="font-size:11px;color:var(--t3)">탭하여 선택</span>';
+      document.getElementById('ibNote').value='';
+    });
+}
+
+// ANALYSIS
+function runAnalysis(){
+  if(!recs.length){alert('기록이 없어요!');return;}
+  var btn=document.getElementById('anaBtn'), aiBox=document.getElementById('anaAi'), aiBody=document.getElementById('anaBody');
+  btn.disabled=true; btn.innerHTML='<div class="sp"></div> 분석 중...';
+  aiBox.classList.remove('on');
+
+  var ms=recs.filter(function(r){return r.type==='morning';}).slice(-14);
+  var ibs=recs.filter(function(r){return r.type==='inbody';}).slice(-4);
+  var lines=['최근 건강 기록 종합 분석. 한국어 500자 이내.',''];
+  lines.push('[아침루틴 최근'+ms.length+'회]');
+  ms.forEach(function(r){
+    var s=fmtDate(r.date)+':';
+    if(r.weight)s+=' 체중'+r.weight+'kg';
+    if(r.sys)s+=' 혈압'+r.sys+'/'+r.dia;
+    if(r.sleepStr)s+=' 수면'+r.sleepStr+'('+r.sleepCond+')';
+    lines.push('- '+s);
+  });
+  if(ibs.length){lines.push('');lines.push('[인바디 '+ibs.length+'회 기록됨]');}
+  lines.push('','1.전체트렌드 2.수면-혈압-체중연관성 3.잘하는것 4.개선포인트 5.이번달목표 6.응원');
+
+  callAI(lines.join('\n'), null)
+    .then(function(text){
+      aiBody.innerHTML=fmtAI(text);
+      document.getElementById('anaDate').textContent=fmtDate(new Date().toISOString())+' 기준';
+      aiBox.classList.add('on');
+    })
+    .catch(function(e){
+      aiBody.innerHTML='<span style="color:var(--re)">오류: '+e.message+'</span>';
+      aiBox.classList.add('on');
+    })
+    .then(function(){btn.disabled=false;btn.innerHTML='📈 종합 리포트 생성';});
+}
+
+// CHECKS
+function updateChecks(){
+  var today=new Date().toISOString().split('T')[0];
+  var m=recs.find(function(r){return r.type==='morning'&&r.date.startsWith(today);});
+  setChk('w', m&&m.weight, '미측정');
+  setChk('b', m&&m.sys, '미측정');
+  setChk('s', m&&m.sleepStr, '미기록');
+  setChk('e', m&&(m.hasExImg||m.exNote), '미기록');
+}
+function setChk(id,ok,def){
+  var el=document.getElementById('chk-'+id), st=document.getElementById('cs-'+id);
+  if(!el||!st)return;
+  if(ok){el.classList.add('ok');st.textContent='완료 ✓';}
+  else{el.classList.remove('ok');st.textContent=def;}
+}
+
+// AVG & LAST BP
+function updateAvg(){
+  var ws=recs.filter(function(r){return r.type==='morning'&&r.weight;});
+  var el=document.getElementById('avg7'), dl=document.getElementById('avg7d');
+  if(!ws.length){el.textContent='— kg';return;}
+  var last7=ws.slice(-7), avg=last7.reduce(function(s,r){return s+r.weight;},0)/last7.length;
+  el.textContent=avg.toFixed(1)+' kg';
+  var prev7=ws.slice(-14,-7);
+  if(prev7.length>=3){
+    var pa=prev7.reduce(function(s,r){return s+r.weight;},0)/prev7.length;
+    var d=(avg-pa).toFixed(1);
+    dl.textContent='지난주 대비 '+(d>0?'+':'')+d+'kg';
+    dl.style.color=d<0?'var(--ac)':d>0?'var(--re)':'var(--t3)';
+  }
+  var bps=recs.filter(function(r){return r.type==='morning'&&r.sys;});
+  var bEl=document.getElementById('lastBP'), bDt=document.getElementById('lastBPd');
+  if(bps.length){
+    var lb=bps[bps.length-1];
+    bEl.textContent=lb.sys+'/'+lb.dia;
+    var diff2=lb.sys-120;
+    bEl.style.color=diff2<=0?'var(--ac)':diff2<=9?'var(--or)':'var(--re)';
+    bDt.textContent=fmtDate(lb.date);
+  }
+}
+
+// GOAL
+function toggleGoal(){
+  var e=document.getElementById('goalEdit');
+  var show=e.style.display==='none'||e.style.display==='';
+  e.style.display=show?'block':'none';
+  if(show&&goal.weight)document.getElementById('gW').value=goal.weight;
+  if(show&&goal.fat)document.getElementById('gF').value=goal.fat;
+}
+function saveGoal(){
+  var w=parseFloat(document.getElementById('gW').value);
+  var f=parseFloat(document.getElementById('gF').value);
+  if(w)goal.weight=w; if(f)goal.fat=f;
+  localStorage.setItem(GK,JSON.stringify(goal));
+  document.getElementById('goalEdit').style.display='none';
+  updateGoalUI();
+}
+function saveGoalSettings(){
+  var w=parseFloat(document.getElementById('sGW').value);
+  var f=parseFloat(document.getElementById('sGF').value);
+  if(w)goal.weight=w; if(f)goal.fat=f;
+  localStorage.setItem(GK,JSON.stringify(goal));
+  updateGoalUI();
+  document.getElementById('goalMsg').style.color='var(--ac)';
+  document.getElementById('goalMsg').textContent='✅ 저장됐어요!';
+  setTimeout(function(){document.getElementById('goalMsg').textContent='';},2000);
+}
+function updateGoalUI(){
+  var ws=recs.filter(function(r){return r.type==='morning'&&r.weight;});
+  var cur=ws.length?ws[ws.length-1].weight:null;
+  document.getElementById('gCur').textContent=cur?cur.toFixed(1):'—';
+  document.getElementById('gTgt').textContent=goal.weight?goal.weight.toFixed(1):'—';
+  if(cur&&goal.weight){
+    var first=ws[0].weight, total=first-goal.weight, done=first-cur;
+    var pct=total>0?Math.max(0,Math.min(100,Math.round(done/total*100))):0;
+    document.getElementById('gPct').textContent=pct+'%';
+    document.getElementById('gBar').style.width=pct+'%';
+    var diff=(cur-goal.weight).toFixed(1);
+    document.getElementById('gDiff').textContent=parseFloat(diff)>0?'목표까지 '+diff+'kg 남았어요':'🎉 목표 달성!';
+  }
+}
+
+// CHARTS
+function setDays(n,btn){
+  chartDays=n;
+  document.querySelectorAll('.tp-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  renderCharts();
+}
+function renderCharts(){drawWChart();drawBChart();}
+
+function drawWChart(){
+  var canvas=document.getElementById('wChart'), empty=document.getElementById('wEmpty');
+  var cutoff=new Date(); cutoff.setDate(cutoff.getDate()-chartDays);
+  var data=recs.filter(function(r){return r.type==='morning'&&r.weight&&new Date(r.date)>=cutoff;})
+    .sort(function(a,b){return new Date(a.date)-new Date(b.date);})
+    .map(function(r){return{d:r.date.split('T')[0],v:r.weight};});
+  if(data.length<2){canvas.style.display='none';empty.style.display='block';return;}
+  canvas.style.display='block';empty.style.display='none';
+  var W=canvas.offsetWidth||300, H=110;
+  canvas.width=W*devicePixelRatio; canvas.height=H*devicePixelRatio;
+  var ctx=canvas.getContext('2d'); ctx.scale(devicePixelRatio,devicePixelRatio);
+  var pad={l:38,r:12,t:18,b:22};
+  var vals=data.map(function(d){return d.v;});
+  var mn=Math.min.apply(null,vals)-0.5, mx=Math.max.apply(null,vals)+0.5;
+  var toX=function(i){return pad.l+i*(W-pad.l-pad.r)/(Math.max(data.length-1,1));};
+  var toY=function(v){return pad.t+(mx-v)/(mx-mn)*(H-pad.t-pad.b);};
+  ctx.clearRect(0,0,W,H);
+  for(var i=0;i<=3;i++){
+    var gy=pad.t+(H-pad.t-pad.b)*i/3;
+    ctx.strokeStyle='rgba(42,48,64,.7)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad.l,gy);ctx.lineTo(W-pad.r,gy);ctx.stroke();
+    ctx.fillStyle='#555f72';ctx.font='9px sans-serif';ctx.textAlign='right';
+    ctx.fillText((mx-(mx-mn)*i/3).toFixed(1),pad.l-3,gy+3);
+  }
+  var grad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+  grad.addColorStop(0,'rgba(79,209,165,.2)');grad.addColorStop(1,'rgba(79,209,165,0)');
+  ctx.beginPath();ctx.moveTo(toX(0),H-pad.b);
+  data.forEach(function(d,i){ctx.lineTo(toX(i),toY(d.v));});
+  ctx.lineTo(toX(data.length-1),H-pad.b);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();
+  data.forEach(function(d,i){i===0?ctx.moveTo(toX(i),toY(d.v)):ctx.lineTo(toX(i),toY(d.v));});
+  ctx.strokeStyle='rgba(79,209,165,.5)';ctx.lineWidth=1.5;ctx.setLineDash([3,2]);ctx.stroke();ctx.setLineDash([]);
+  if(data.length>=3){
+    ctx.beginPath();
+    data.forEach(function(d,i){
+      var win=data.slice(Math.max(0,i-6),i+1);
+      var avg=win.reduce(function(s,x){return s+x.v;},0)/win.length;
+      i===0?ctx.moveTo(toX(i),toY(avg)):ctx.lineTo(toX(i),toY(avg));
+    });
+    ctx.strokeStyle='#60a5fa';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+  }
+  data.forEach(function(d,i){
+    ctx.beginPath();ctx.arc(toX(i),toY(d.v),3,0,Math.PI*2);
+    ctx.fillStyle='#4fd1a5';ctx.fill();
+  });
+  var last=data[data.length-1];
+  ctx.fillStyle='#e8edf5';ctx.font='bold 11px sans-serif';ctx.textAlign='right';
+  ctx.fillText(last.v+'kg',W-pad.r,toY(last.v)-6);
+  var step=Math.ceil(data.length/5);
+  data.forEach(function(d,i){
+    if(i%step===0||i===data.length-1){
+      var p=d.d.split('-');
+      ctx.fillStyle='#555f72';ctx.font='9px sans-serif';ctx.textAlign='center';
+      ctx.fillText(p[1]+'/'+p[2],toX(i),H-pad.b+13);
+    }
+  });
+  ctx.font='9px sans-serif';ctx.textAlign='left';
+  ctx.fillStyle='rgba(79,209,165,.7)';ctx.fillText('● 체중',pad.l,11);
+  ctx.fillStyle='#60a5fa';ctx.fillText('━ 7일평균',pad.l+38,11);
+}
+
+function drawBChart(){
+  var canvas=document.getElementById('bChart'), empty=document.getElementById('bEmpty');
+  var data=recs.filter(function(r){return r.type==='morning'&&r.sys&&r.dia;})
+    .slice(-14).sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+  if(data.length<2){canvas.style.display='none';empty.style.display='block';return;}
+  canvas.style.display='block';empty.style.display='none';
+  var W=canvas.offsetWidth||300, H=90;
+  canvas.width=W*devicePixelRatio; canvas.height=H*devicePixelRatio;
+  var ctx=canvas.getContext('2d'); ctx.scale(devicePixelRatio,devicePixelRatio);
+  var pad={l:34,r:10,t:12,b:20};
+  var allV=data.map(function(r){return r.sys;}).concat(data.map(function(r){return r.dia;}));
+  var mn=Math.min.apply(null,allV)-5, mx=Math.max.apply(null,allV)+5;
+  var toX=function(i){return pad.l+i*(W-pad.l-pad.r)/(Math.max(data.length-1,1));};
+  var toY=function(v){return pad.t+(mx-v)/(mx-mn)*(H-pad.t-pad.b);};
+  ctx.clearRect(0,0,W,H);
+  ctx.setLineDash([4,3]);ctx.strokeStyle='rgba(249,115,22,.3)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,toY(120));ctx.lineTo(W-pad.r,toY(120));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(249,115,22,.5)';ctx.font='9px sans-serif';ctx.textAlign='right';
+  ctx.fillText('120',pad.l-2,toY(120)+3);
+  ctx.beginPath();
+  data.forEach(function(r,i){i===0?ctx.moveTo(toX(i),toY(r.sys)):ctx.lineTo(toX(i),toY(r.sys));});
+  ctx.strokeStyle='#f97316';ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+  ctx.beginPath();
+  data.forEach(function(r,i){i===0?ctx.moveTo(toX(i),toY(r.dia)):ctx.lineTo(toX(i),toY(r.dia));});
+  ctx.strokeStyle='#60a5fa';ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+  data.forEach(function(r,i){
+    [{v:r.sys,c:'#f97316'},{v:r.dia,c:'#60a5fa'}].forEach(function(p){
+      ctx.beginPath();ctx.arc(toX(i),toY(p.v),3,0,Math.PI*2);
+      ctx.fillStyle=p.c;ctx.fill();
+    });
+    if(i%Math.ceil(data.length/5)===0||i===data.length-1){
+      var p=r.date.split('T')[0].split('-');
+      ctx.fillStyle='#555f72';ctx.font='9px sans-serif';ctx.textAlign='center';
+      ctx.fillText(p[1]+'/'+p[2],toX(i),H-pad.b+12);
+    }
+  });
+  ctx.font='9px sans-serif';ctx.textAlign='left';
+  ctx.fillStyle='#f97316';ctx.fillText('● 수축기',pad.l,10);
+  ctx.fillStyle='#60a5fa';ctx.fillText('● 이완기',pad.l+46,10);
+}
+
+// HISTORY
+var hFilter='all';
+function setFilter(f,btn){
+  hFilter=f;
+  document.querySelectorAll('.flt-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  renderHistory();
+}
+function renderHistory(){
+  var list=document.getElementById('histList');
+  var now=new Date();
+  var filtered=recs.filter(function(r){return hFilter==='all'||r.type===hFilter;}).slice().reverse();
+  document.getElementById('stTotal').textContent=recs.length;
+  document.getElementById('stMonth').textContent=recs.filter(function(r){
+    var d=new Date(r.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  }).length;
+  var dates=Array.from(new Set(recs.map(function(r){return r.date.split('T')[0];}))).sort();
+  var streak=0,check=now.toISOString().split('T')[0];
+  for(var i=dates.length-1;i>=0;i--){
+    if(dates[i]===check){streak++;var d2=new Date(check);d2.setDate(d2.getDate()-1);check=d2.toISOString().split('T')[0];}
+    else break;
+  }
+  document.getElementById('stStreak').textContent=streak;
+  if(!filtered.length){list.innerHTML='<div class="empty"><div class="empty-i">📭</div><div>기록이 없어요</div></div>';return;}
+  list.innerHTML=filtered.map(function(r){
+    var badge=r.type==='morning'?'<span class="badge bg-m">아침루틴</span>':'<span class="badge bg-i">인바디</span>';
+    var chips=mkChips(r);
+    var ai=r.aiAnalysis?'<div class="h-ai">'+r.aiAnalysis.replace(/\*\*/g,'').substring(0,90)+'...</div>':'';
+    return '<div class="h-item" onclick="showDet('+r.id+')"><div class="h-top"><div class="h-dt">'+fmtDate(r.date)+'</div>'+badge+'</div><div class="chips">'+chips+'</div>'+ai+'</div>';
+  }).join('');
+}
+function mkChips(r){
+  var c=[];
+  if(r.type==='morning'){
+    if(r.weight)c.push('<div class="chip">⚖️ <b>'+r.weight+'</b>kg</div>');
+    if(r.sys)c.push('<div class="chip">🩺 <b>'+r.sys+'/'+r.dia+'</b></div>');
+    if(r.sleepStr)c.push('<div class="chip">🌙 <b>'+r.sleepStr+'</b></div>');
+    if(r.hasExImg||r.exNote)c.push('<div class="chip">💪 운동</div>');
+  } else {
+    c.push('<div class="chip">📸 인바디 캡쳐</div>');
+  }
+  return c.join('');
+}
+function showDet(id){
+  var r=recs.find(function(x){return x.id===id;});
+  if(!r)return;
+  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    +'<div style="font-weight:700;font-size:16px">'+(r.type==='morning'?'아침루틴':'인바디')+'</div>'
+    +'<div style="display:flex;gap:8px;align-items:center">'
+    +'<div style="font-size:11px;color:var(--t3)">'+fmtDate(r.date)+'</div>'
+    +'<button onclick="delRec('+r.id+')" style="padding:5px 10px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--re);border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit">삭제</button>'
+    +'</div></div>';
+  html+='<div style="margin-bottom:10px">'+mkChips(r)+'</div>';
+  if(r.type==='morning'){
+    html+='<div style="background:var(--s2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--t2);margin-bottom:10px;line-height:1.6">';
+    if(r.sleepStr)html+='🌙 수면 '+r.sleepStr+' · '+r.sleepCond+'<br>';
+    if(r.exNote)html+='💪 '+r.exNote;
+    html+='</div>';
+  }
+  if(r.aiAnalysis)html+='<div style="background:rgba(79,209,165,.06);border:1px solid rgba(79,209,165,.2);border-radius:10px;padding:14px"><div style="font-size:11px;font-weight:600;color:var(--ac);margin-bottom:8px">🤖 AI 분석</div><div style="font-size:13px;color:var(--t2);line-height:1.7">'+fmtAI(r.aiAnalysis)+'</div></div>';
+  document.getElementById('mBody').innerHTML=html;
+  document.getElementById('mBg').classList.add('on');
+}
+function delRec(id){
+  if(!confirm('삭제할까요?'))return;
+  recs=recs.filter(function(r){return r.id!==id;});
+  saveDB(); closeMod({target:document.getElementById('mBg')});
+  renderHistory(); updateChecks(); updateAvg(); updateGoalUI(); renderCharts();
+}
+function closeMod(e){if(e.target===document.getElementById('mBg'))document.getElementById('mBg').classList.remove('on');}
+
+// BACKUP
+function doBackup(){
+  var blob=new Blob([JSON.stringify({records:recs,goal:goal,at:new Date().toISOString()},null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download='hc-backup-'+new Date().toISOString().split('T')[0]+'.json';
+  a.click(); URL.revokeObjectURL(url);
+  document.getElementById('bkMsg').style.color='var(--ac)';
+  document.getElementById('bkMsg').textContent='✅ 백업 파일 다운로드됐어요';
+}
+function doRestore(inp){
+  var file=inp.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(!data.records)throw new Error('올바른 백업 파일이 아닙니다');
+      if(!confirm('현재 데이터를 지우고 복원할까요? ('+data.records.length+'개 기록)'))return;
+      recs=data.records;
+      if(data.goal){goal=data.goal;localStorage.setItem(GK,JSON.stringify(goal));}
+      saveDB(); renderHistory(); updateChecks(); updateAvg(); updateGoalUI(); renderCharts();
+      document.getElementById('bkMsg').style.color='var(--ac)';
+      document.getElementById('bkMsg').textContent='✅ '+recs.length+'개 기록 복원 완료!';
+    }catch(err){
+      document.getElementById('bkMsg').style.color='var(--re)';
+      document.getElementById('bkMsg').textContent='오류: '+err.message;
+    }
+  };
+  r.readAsText(file); inp.value='';
+}
+function doClear(){
+  if(!confirm('모든 기록을 삭제할까요? 먼저 백업하세요!'))return;
+  if(!confirm('정말로 삭제합니까? 되돌릴 수 없어요.'))return;
+  recs=[]; saveDB(); renderHistory(); updateChecks(); updateAvg(); updateGoalUI(); renderCharts();
+  document.getElementById('bkMsg').style.color='var(--t3)';
+  document.getElementById('bkMsg').textContent='데이터가 삭제됐어요';
+}
+
+// UTILS
+function saveDB(){localStorage.setItem(DB,JSON.stringify(recs));}
+function fmtDate(iso){var d=new Date(iso);return (d.getMonth()+1)+'/'+d.getDate()+' '+p2(d.getHours())+':'+p2(d.getMinutes());}
+function p2(n){return n<10?'0'+n:''+n;}
+function fmtAI(t){return t.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');}
+function updateStats2(){}
+</script>
+</body>
+</html>
