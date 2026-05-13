@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>준킴쌤 Health Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #090c10;
+    --accent: #4fd1a5;
+    --accent2: #60a5fa;
+    --accent3: #f97316;
+    --text: #e8edf5;
+    --text2: #8892a4;
+    --text3: #404858;
+    --surface: #111520;
+    --border: #1e2535;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.4;
+  }
+
+  /* ── MESH BG ── */
+  .mesh {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .mesh-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.12;
+    animation: float 12s ease-in-out infinite;
+  }
+  .mesh-blob:nth-child(1) { width: 600px; height: 600px; background: var(--accent); top: -200px; left: -200px; animation-delay: 0s; }
+  .mesh-blob:nth-child(2) { width: 500px; height: 500px; background: var(--accent2); bottom: -150px; right: -150px; animation-delay: -4s; }
+  .mesh-blob:nth-child(3) { width: 300px; height: 300px; background: var(--accent3); top: 40%; left: 40%; animation-delay: -8s; opacity: 0.07; }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -20px) scale(1.05); }
+    66% { transform: translate(-20px, 15px) scale(0.97); }
+  }
+
+  /* ── WRAPPER ── */
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(9,12,16,0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-cta {
+    background: var(--accent);
+    color: #051510;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .nav-cta:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 100px 24px 60px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(79,209,165,0.08);
+    border: 1px solid rgba(79,209,165,0.2);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 28px;
+    letter-spacing: 0.5px;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge::before { content: '●'; font-size: 8px; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(40px, 8vw, 88px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .hero-title .line2 {
+    display: block;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: clamp(15px, 2vw, 18px);
+    color: var(--text2);
+    line-height: 1.7;
+    max-width: 520px;
+    margin: 0 auto 40px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .hero-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+
+  .btn-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #051510;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    letter-spacing: 0.2px;
+  }
+  .btn-main:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(79,209,165,0.3); }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── APP PREVIEW ── */
+  .preview-wrap {
+    margin-top: 60px;
+    position: relative;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+  .preview-glow {
+    position: absolute;
+    inset: -40px;
+    background: radial-gradient(ellipse at 50% 100%, rgba(79,209,165,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .preview-frame {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    max-width: 360px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .preview-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .preview-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .preview-dot:nth-child(1) { background: #f87171; }
+  .preview-dot:nth-child(2) { background: #fbbf24; }
+  .preview-dot:nth-child(3) { background: var(--accent); }
+
+  .mock-stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .mock-stat {
+    background: rgba(30,37,53,0.8);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .mock-stat-num { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--accent); }
+  .mock-stat-label { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  .mock-chart {
+    background: rgba(30,37,53,0.8);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+    height: 80px;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .mock-bar {
+    flex: 1;
+    border-radius: 4px 4px 0 0;
+    animation: barGrow 1s ease both;
+    background: linear-gradient(180deg, var(--accent) 0%, rgba(79,209,165,0.3) 100%);
+  }
+  @keyframes barGrow { from { height: 0 !important; } }
+
+  .mock-ai {
+    background: linear-gradient(135deg, rgba(79,209,165,0.08), rgba(96,165,250,0.06));
+    border: 1px solid rgba(79,209,165,0.2);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+  .mock-ai-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .mock-ai-dot { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 10px; }
+
+  /* ── FEATURES ── */
+  .features {
+    padding: 100px 0;
+  }
+  .section-tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+    line-height: 1.1;
+  }
+  .section-sub {
+    font-size: 16px;
+    color: var(--text2);
+    line-height: 1.7;
+    max-width: 480px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 48px;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(79,209,165,0.04) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feature-card:hover { border-color: rgba(79,209,165,0.3); transform: translateY(-4px); }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+  .feature-icon.green { background: rgba(79,209,165,0.12); }
+  .feature-icon.blue { background: rgba(96,165,250,0.12); }
+  .feature-icon.orange { background: rgba(249,115,22,0.12); }
+  .feature-icon.purple { background: rgba(167,139,250,0.12); }
+
+  .feature-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.3px;
+  }
+  .feature-desc {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* ── METRICS ── */
+  .metrics {
+    padding: 80px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0;
+  }
+  .metric-item {
+    padding: 32px 24px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+  .metric-item:last-child { border-right: none; }
+  .metric-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .metric-label { font-size: 13px; color: var(--text2); }
+
+  /* ── HOW IT WORKS ── */
+  .how {
+    padding: 100px 0;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0;
+    margin-top: 48px;
+    position: relative;
+  }
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 14%;
+    right: 14%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), var(--border), transparent);
+  }
+  .step {
+    padding: 0 20px;
+    text-align: center;
+    position: relative;
+  }
+  .step-num {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--accent);
+    margin: 0 auto 16px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+  }
+  .step:hover .step-num { border-color: var(--accent); background: rgba(79,209,165,0.1); }
+  .step-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .step-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+  /* ── CTA SECTION ── */
+  .cta-section {
+    padding: 100px 0;
+    text-align: center;
+  }
+  .cta-box {
+    background: linear-gradient(135deg, rgba(79,209,165,0.06) 0%, rgba(96,165,250,0.04) 100%);
+    border: 1px solid rgba(79,209,165,0.15);
+    border-radius: 24px;
+    padding: 60px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 300px;
+    background: radial-gradient(ellipse, rgba(79,209,165,0.1) 0%, transparent 70%);
+  }
+  .cta-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .cta-sub { font-size: 16px; color: var(--text2); margin-bottom: 32px; position: relative; }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 32px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-logo { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text2); }
+  .footer-logo span { color: var(--accent); }
+  .footer-note { font-size: 12px; color: var(--text3); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── MOBILE ── */
+  @media (max-width: 600px) {
+    .steps::before { display: none; }
+    .metric-item { border-right: none; border-bottom: 1px solid var(--border); }
+    .metric-item:last-child { border-bottom: none; }
+    .cta-box { padding: 40px 20px; }
+    nav { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Mesh background -->
+<div class="mesh">
+  <div class="mesh-blob"></div>
+  <div class="mesh-blob"></div>
+  <div class="mesh-blob"></div>
+</div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">Health<span>Coach</span></div>
+  <a href="health-coach.html" class="nav-cta">앱 열기 →</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">준킴쌤 전용 · AI 건강 코치</div>
+  <h1 class="hero-title">
+    몸의 변화를<br>
+    <span class="line2">데이터로 읽는다</span>
+  </h1>
+  <p class="hero-sub">
+    인바디 · 혈압 · 운동 · 수면을 하나로 연결하고<br>
+    AI가 지금 상태를 분석해 맞춤 조언을 드립니다
+  </p>
+  <div class="hero-btns">
+    <a href="health-coach.html" class="btn-main">📋 지금 기록하기</a>
+    <a href="#features" class="btn-ghost">기능 살펴보기 ↓</a>
+  </div>
+
+  <!-- App preview mockup -->
+  <div class="preview-wrap">
+    <div class="preview-glow"></div>
+    <div class="preview-frame">
+      <div class="preview-bar">
+        <div class="preview-dot"></div>
+        <div class="preview-dot"></div>
+        <div class="preview-dot"></div>
+      </div>
+      <div class="mock-stat-row">
+        <div class="mock-stat">
+          <div class="mock-stat-num">83.5</div>
+          <div class="mock-stat-label">kg 체중</div>
+        </div>
+        <div class="mock-stat">
+          <div class="mock-stat-num" style="color:var(--accent2)">124</div>
+          <div class="mock-stat-label">수축기</div>
+        </div>
+        <div class="mock-stat">
+          <div class="mock-stat-num" style="color:#a78bfa">5h</div>
+          <div class="mock-stat-label">수면</div>
+        </div>
+      </div>
+      <div class="mock-chart">
+        <div class="mock-bar" style="height:45%;animation-delay:0.5s"></div>
+        <div class="mock-bar" style="height:55%;animation-delay:0.6s"></div>
+        <div class="mock-bar" style="height:40%;animation-delay:0.7s"></div>
+        <div class="mock-bar" style="height:60%;animation-delay:0.8s"></div>
+        <div class="mock-bar" style="height:50%;animation-delay:0.9s"></div>
+        <div class="mock-bar" style="height:65%;animation-delay:1.0s"></div>
+        <div class="mock-bar" style="height:55%;animation-delay:1.1s;opacity:0.5"></div>
+      </div>
+      <div class="mock-ai">
+        <div class="mock-ai-head">
+          <div class="mock-ai-dot">🤖</div>
+          <span style="font-weight:600;color:var(--accent);font-size:11px">AI 분석</span>
+        </div>
+        이번 주 체중 평균이 0.3kg 감소했어요. 운동 루틴이 효과를 내고 있습니다. 단백질 섭취를 조금 더 늘려보세요 💪
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Metrics bar -->
+<section class="metrics">
+  <div class="wrap">
+    <div class="metrics-grid">
+      <div class="metric-item reveal">
+        <span class="metric-num">4</span>
+        <div class="metric-label">측정 항목 통합</div>
+      </div>
+      <div class="metric-item reveal">
+        <span class="metric-num">7일</span>
+        <div class="metric-label">이동 평균 트렌드</div>
+      </div>
+      <div class="metric-item reveal">
+        <span class="metric-num">AI</span>
+        <div class="metric-label">맞춤 코칭 분석</div>
+      </div>
+      <div class="metric-item reveal">
+        <span class="metric-num">∞</span>
+        <div class="metric-label">기록 저장 (로컬)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="section-tag">Features</div>
+      <h2 class="section-title">건강의 모든 축을<br>하나의 화면에</h2>
+      <p class="section-sub">캡쳐 한 장으로 데이터 입력, AI가 즉시 분석하고 지난 기록과 비교해드립니다</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon green">⚖️</div>
+        <div class="feature-title">인바디 분석</div>
+        <div class="feature-desc">체중계 화면 캡쳐 한 장으로 체중·체지방·근육량·내장지방 전체 항목을 AI가 읽고 해석해드립니다. 매일 체중만 빠르게 입력하는 기능도 별도로 있어요.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon orange">🩺</div>
+        <div class="feature-title">혈압 트래킹</div>
+        <div class="feature-desc">혈압기 화면 캡쳐 또는 직접 입력. 수축기·이완기·맥박을 기록하고 AI가 단계 판정과 생활습관 코칭을 바로 드립니다. 시간대별 패턴도 분석해요.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon blue">💪</div>
+        <div class="feature-title">운동 기록</div>
+        <div class="feature-desc">운동 앱 캡쳐 또는 직접 입력. 종류·시간·칼로리·강도를 기록하면 AI가 오늘 운동의 효과와 다음 세션을 위한 팁을 알려줍니다.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon purple">🌙</div>
+        <div class="feature-title">수면 분석</div>
+        <div class="feature-desc">취침·기상 시간 입력으로 총 수면시간 자동 계산. 질 점수와 컨디션을 기록하면 혈압·체중과의 연관성을 AI가 교차 분석해드립니다.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon green">📈</div>
+        <div class="feature-title">7일 이동 평균</div>
+        <div class="feature-desc">매일 체중이 오르내려도 7일 평균선이 실제 트렌드를 보여줘요. 하루 숫자에 흔들리지 않고 방향성을 확인할 수 있습니다.</div>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon blue">🧠</div>
+        <div class="feature-title">종합 건강 리포트</div>
+        <div class="feature-desc">인바디·혈압·운동·수면 기록을 종합해 AI가 건강 트렌드를 분석하고 이번 달 집중해야 할 한 가지 목표를 제안합니다.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="how">
+  <div class="wrap">
+    <div style="text-align:center" class="reveal">
+      <div class="section-tag">Daily Routine</div>
+      <h2 class="section-title">매일 아침 5분</h2>
+      <p class="section-sub" style="margin:0 auto">복잡하지 않아요. 기상 후 딱 5분이면 오늘의 건강 데이터가 완성됩니다</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">1</div>
+        <div class="step-title">체중 입력</div>
+        <div class="step-desc">홈 탭에서 숫자 하나만. 엔터 한 번으로 저장</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">2</div>
+        <div class="step-title">혈압 측정</div>
+        <div class="step-desc">5분 안정 후 캡쳐 또는 직접 입력</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">3</div>
+        <div class="step-title">AI 분석</div>
+        <div class="step-desc">저장하면 즉시 어제와 비교 + 오늘의 조언</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">4</div>
+        <div class="step-title">수면 기록</div>
+        <div class="step-desc">다음날 기상 후 어젯밤 수면 질 30초 입력</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="wrap">
+    <div class="cta-box reveal">
+      <h2 class="cta-title">오늘 기록이<br>3개월 후를 만들어요</h2>
+      <p class="cta-sub">매일 쌓이는 데이터가 AI에게 더 정확한 분석을 가능하게 합니다</p>
+      <a href="health-coach.html" class="btn-main" style="font-size:16px;padding:16px 36px">
+        📋 지금 시작하기
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">Health<span>Coach</span></div>
+  <div class="footer-note">준킴쌤 전용 · Powered by Claude AI</div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
